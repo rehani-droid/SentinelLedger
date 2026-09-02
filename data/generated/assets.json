@@ -1,0 +1,702 @@
+[
+  {
+    "id": 1,
+    "name": "Demo-Database-001",
+    "type": "database",
+    "criticality": 0.54,
+    "internet_exposed": false
+  },
+  {
+    "id": 2,
+    "name": "Demo-Web-Server-002",
+    "type": "web_server",
+    "criticality": 0.28,
+    "internet_exposed": false
+  },
+  {
+    "id": 3,
+    "name": "Demo-Api-003",
+    "type": "api",
+    "criticality": 0.49,
+    "internet_exposed": true
+  },
+  {
+    "id": 4,
+    "name": "Demo-Workstation-004",
+    "type": "workstation",
+    "criticality": 0.95,
+    "internet_exposed": false
+  },
+  {
+    "id": 5,
+    "name": "Demo-Cloud-Workload-005",
+    "type": "cloud_workload",
+    "criticality": 0.7,
+    "internet_exposed": true
+  },
+  {
+    "id": 6,
+    "name": "Demo-Identity-Server-006",
+    "type": "identity_server",
+    "criticality": 0.26,
+    "internet_exposed": false
+  },
+  {
+    "id": 7,
+    "name": "Demo-Payment-System-007",
+    "type": "payment_system",
+    "criticality": 0.91,
+    "internet_exposed": false
+  },
+  {
+    "id": 8,
+    "name": "Demo-Email-Server-008",
+    "type": "email_server",
+    "criticality": 0.38,
+    "internet_exposed": false
+  },
+  {
+    "id": 9,
+    "name": "Demo-Backup-Server-009",
+    "type": "backup_server",
+    "criticality": 0.65,
+    "internet_exposed": true
+  },
+  {
+    "id": 10,
+    "name": "Demo-Database-010",
+    "type": "database",
+    "criticality": 0.45,
+    "internet_exposed": true
+  },
+  {
+    "id": 11,
+    "name": "Demo-Web-Server-011",
+    "type": "web_server",
+    "criticality": 0.32,
+    "internet_exposed": true
+  },
+  {
+    "id": 12,
+    "name": "Demo-Api-012",
+    "type": "api",
+    "criticality": 0.73,
+    "internet_exposed": false
+  },
+  {
+    "id": 13,
+    "name": "Demo-Workstation-013",
+    "type": "workstation",
+    "criticality": 0.67,
+    "internet_exposed": true
+  },
+  {
+    "id": 14,
+    "name": "Demo-Cloud-Workload-014",
+    "type": "cloud_workload",
+    "criticality": 0.87,
+    "internet_exposed": true
+  },
+  {
+    "id": 15,
+    "name": "Demo-Identity-Server-015",
+    "type": "identity_server",
+    "criticality": 0.69,
+    "internet_exposed": false
+  },
+  {
+    "id": 16,
+    "name": "Demo-Payment-System-016",
+    "type": "payment_system",
+    "criticality": 0.56,
+    "internet_exposed": true
+  },
+  {
+    "id": 17,
+    "name": "Demo-Email-Server-017",
+    "type": "email_server",
+    "criticality": 0.35,
+    "internet_exposed": true
+  },
+  {
+    "id": 18,
+    "name": "Demo-Backup-Server-018",
+    "type": "backup_server",
+    "criticality": 0.94,
+    "internet_exposed": false
+  },
+  {
+    "id": 19,
+    "name": "Demo-Database-019",
+    "type": "database",
+    "criticality": 0.77,
+    "internet_exposed": true
+  },
+  {
+    "id": 20,
+    "name": "Demo-Web-Server-020",
+    "type": "web_server",
+    "criticality": 0.66,
+    "internet_exposed": true
+  },
+  {
+    "id": 21,
+    "name": "Demo-Api-021",
+    "type": "api",
+    "criticality": 0.47,
+    "internet_exposed": true
+  },
+  {
+    "id": 22,
+    "name": "Demo-Workstation-022",
+    "type": "workstation",
+    "criticality": 0.96,
+    "internet_exposed": true
+  },
+  {
+    "id": 23,
+    "name": "Demo-Cloud-Workload-023",
+    "type": "cloud_workload",
+    "criticality": 0.53,
+    "internet_exposed": true
+  },
+  {
+    "id": 24,
+    "name": "Demo-Identity-Server-024",
+    "type": "identity_server",
+    "criticality": 0.61,
+    "internet_exposed": true
+  },
+  {
+    "id": 25,
+    "name": "Demo-Payment-System-025",
+    "type": "payment_system",
+    "criticality": 0.46,
+    "internet_exposed": false
+  },
+  {
+    "id": 26,
+    "name": "Demo-Email-Server-026",
+    "type": "email_server",
+    "criticality": 0.74,
+    "internet_exposed": false
+  },
+  {
+    "id": 27,
+    "name": "Demo-Backup-Server-027",
+    "type": "backup_server",
+    "criticality": 0.85,
+    "internet_exposed": true
+  },
+  {
+    "id": 28,
+    "name": "Demo-Database-028",
+    "type": "database",
+    "criticality": 0.84,
+    "internet_exposed": false
+  },
+  {
+    "id": 29,
+    "name": "Demo-Web-Server-029",
+    "type": "web_server",
+    "criticality": 0.77,
+    "internet_exposed": true
+  },
+  {
+    "id": 30,
+    "name": "Demo-Api-030",
+    "type": "api",
+    "criticality": 0.54,
+    "internet_exposed": false
+  },
+  {
+    "id": 31,
+    "name": "Demo-Workstation-031",
+    "type": "workstation",
+    "criticality": 0.34,
+    "internet_exposed": false
+  },
+  {
+    "id": 32,
+    "name": "Demo-Cloud-Workload-032",
+    "type": "cloud_workload",
+    "criticality": 0.65,
+    "internet_exposed": true
+  },
+  {
+    "id": 33,
+    "name": "Demo-Identity-Server-033",
+    "type": "identity_server",
+    "criticality": 0.57,
+    "internet_exposed": false
+  },
+  {
+    "id": 34,
+    "name": "Demo-Payment-System-034",
+    "type": "payment_system",
+    "criticality": 0.56,
+    "internet_exposed": true
+  },
+  {
+    "id": 35,
+    "name": "Demo-Email-Server-035",
+    "type": "email_server",
+    "criticality": 0.98,
+    "internet_exposed": true
+  },
+  {
+    "id": 36,
+    "name": "Demo-Backup-Server-036",
+    "type": "backup_server",
+    "criticality": 0.34,
+    "internet_exposed": false
+  },
+  {
+    "id": 37,
+    "name": "Demo-Database-037",
+    "type": "database",
+    "criticality": 0.97,
+    "internet_exposed": true
+  },
+  {
+    "id": 38,
+    "name": "Demo-Web-Server-038",
+    "type": "web_server",
+    "criticality": 0.92,
+    "internet_exposed": false
+  },
+  {
+    "id": 39,
+    "name": "Demo-Api-039",
+    "type": "api",
+    "criticality": 0.59,
+    "internet_exposed": true
+  },
+  {
+    "id": 40,
+    "name": "Demo-Workstation-040",
+    "type": "workstation",
+    "criticality": 0.71,
+    "internet_exposed": false
+  },
+  {
+    "id": 41,
+    "name": "Demo-Cloud-Workload-041",
+    "type": "cloud_workload",
+    "criticality": 0.45,
+    "internet_exposed": false
+  },
+  {
+    "id": 42,
+    "name": "Demo-Identity-Server-042",
+    "type": "identity_server",
+    "criticality": 0.84,
+    "internet_exposed": false
+  },
+  {
+    "id": 43,
+    "name": "Demo-Payment-System-043",
+    "type": "payment_system",
+    "criticality": 0.95,
+    "internet_exposed": true
+  },
+  {
+    "id": 44,
+    "name": "Demo-Email-Server-044",
+    "type": "email_server",
+    "criticality": 0.59,
+    "internet_exposed": true
+  },
+  {
+    "id": 45,
+    "name": "Demo-Backup-Server-045",
+    "type": "backup_server",
+    "criticality": 0.47,
+    "internet_exposed": false
+  },
+  {
+    "id": 46,
+    "name": "Demo-Database-046",
+    "type": "database",
+    "criticality": 0.47,
+    "internet_exposed": false
+  },
+  {
+    "id": 47,
+    "name": "Demo-Web-Server-047",
+    "type": "web_server",
+    "criticality": 0.29,
+    "internet_exposed": true
+  },
+  {
+    "id": 48,
+    "name": "Demo-Api-048",
+    "type": "api",
+    "criticality": 0.49,
+    "internet_exposed": false
+  },
+  {
+    "id": 49,
+    "name": "Demo-Workstation-049",
+    "type": "workstation",
+    "criticality": 0.85,
+    "internet_exposed": false
+  },
+  {
+    "id": 50,
+    "name": "Demo-Cloud-Workload-050",
+    "type": "cloud_workload",
+    "criticality": 0.73,
+    "internet_exposed": false
+  },
+  {
+    "id": 51,
+    "name": "Demo-Identity-Server-051",
+    "type": "identity_server",
+    "criticality": 0.68,
+    "internet_exposed": true
+  },
+  {
+    "id": 52,
+    "name": "Demo-Payment-System-052",
+    "type": "payment_system",
+    "criticality": 0.3,
+    "internet_exposed": false
+  },
+  {
+    "id": 53,
+    "name": "Demo-Email-Server-053",
+    "type": "email_server",
+    "criticality": 0.95,
+    "internet_exposed": false
+  },
+  {
+    "id": 54,
+    "name": "Demo-Backup-Server-054",
+    "type": "backup_server",
+    "criticality": 0.73,
+    "internet_exposed": false
+  },
+  {
+    "id": 55,
+    "name": "Demo-Database-055",
+    "type": "database",
+    "criticality": 0.94,
+    "internet_exposed": false
+  },
+  {
+    "id": 56,
+    "name": "Demo-Web-Server-056",
+    "type": "web_server",
+    "criticality": 0.61,
+    "internet_exposed": true
+  },
+  {
+    "id": 57,
+    "name": "Demo-Api-057",
+    "type": "api",
+    "criticality": 0.51,
+    "internet_exposed": true
+  },
+  {
+    "id": 58,
+    "name": "Demo-Workstation-058",
+    "type": "workstation",
+    "criticality": 0.82,
+    "internet_exposed": false
+  },
+  {
+    "id": 59,
+    "name": "Demo-Cloud-Workload-059",
+    "type": "cloud_workload",
+    "criticality": 0.26,
+    "internet_exposed": false
+  },
+  {
+    "id": 60,
+    "name": "Demo-Identity-Server-060",
+    "type": "identity_server",
+    "criticality": 0.76,
+    "internet_exposed": true
+  },
+  {
+    "id": 61,
+    "name": "Demo-Payment-System-061",
+    "type": "payment_system",
+    "criticality": 0.86,
+    "internet_exposed": true
+  },
+  {
+    "id": 62,
+    "name": "Demo-Email-Server-062",
+    "type": "email_server",
+    "criticality": 0.66,
+    "internet_exposed": false
+  },
+  {
+    "id": 63,
+    "name": "Demo-Backup-Server-063",
+    "type": "backup_server",
+    "criticality": 0.64,
+    "internet_exposed": true
+  },
+  {
+    "id": 64,
+    "name": "Demo-Database-064",
+    "type": "database",
+    "criticality": 0.79,
+    "internet_exposed": false
+  },
+  {
+    "id": 65,
+    "name": "Demo-Web-Server-065",
+    "type": "web_server",
+    "criticality": 0.76,
+    "internet_exposed": true
+  },
+  {
+    "id": 66,
+    "name": "Demo-Api-066",
+    "type": "api",
+    "criticality": 0.75,
+    "internet_exposed": false
+  },
+  {
+    "id": 67,
+    "name": "Demo-Workstation-067",
+    "type": "workstation",
+    "criticality": 0.35,
+    "internet_exposed": false
+  },
+  {
+    "id": 68,
+    "name": "Demo-Cloud-Workload-068",
+    "type": "cloud_workload",
+    "criticality": 0.84,
+    "internet_exposed": true
+  },
+  {
+    "id": 69,
+    "name": "Demo-Identity-Server-069",
+    "type": "identity_server",
+    "criticality": 0.61,
+    "internet_exposed": true
+  },
+  {
+    "id": 70,
+    "name": "Demo-Payment-System-070",
+    "type": "payment_system",
+    "criticality": 0.96,
+    "internet_exposed": false
+  },
+  {
+    "id": 71,
+    "name": "Demo-Email-Server-071",
+    "type": "email_server",
+    "criticality": 0.59,
+    "internet_exposed": true
+  },
+  {
+    "id": 72,
+    "name": "Demo-Backup-Server-072",
+    "type": "backup_server",
+    "criticality": 0.5,
+    "internet_exposed": true
+  },
+  {
+    "id": 73,
+    "name": "Demo-Database-073",
+    "type": "database",
+    "criticality": 0.61,
+    "internet_exposed": false
+  },
+  {
+    "id": 74,
+    "name": "Demo-Web-Server-074",
+    "type": "web_server",
+    "criticality": 0.68,
+    "internet_exposed": true
+  },
+  {
+    "id": 75,
+    "name": "Demo-Api-075",
+    "type": "api",
+    "criticality": 0.38,
+    "internet_exposed": true
+  },
+  {
+    "id": 76,
+    "name": "Demo-Workstation-076",
+    "type": "workstation",
+    "criticality": 0.62,
+    "internet_exposed": true
+  },
+  {
+    "id": 77,
+    "name": "Demo-Cloud-Workload-077",
+    "type": "cloud_workload",
+    "criticality": 0.43,
+    "internet_exposed": true
+  },
+  {
+    "id": 78,
+    "name": "Demo-Identity-Server-078",
+    "type": "identity_server",
+    "criticality": 0.79,
+    "internet_exposed": true
+  },
+  {
+    "id": 79,
+    "name": "Demo-Payment-System-079",
+    "type": "payment_system",
+    "criticality": 0.6,
+    "internet_exposed": true
+  },
+  {
+    "id": 80,
+    "name": "Demo-Email-Server-080",
+    "type": "email_server",
+    "criticality": 0.94,
+    "internet_exposed": true
+  },
+  {
+    "id": 81,
+    "name": "Demo-Backup-Server-081",
+    "type": "backup_server",
+    "criticality": 0.77,
+    "internet_exposed": true
+  },
+  {
+    "id": 82,
+    "name": "Demo-Database-082",
+    "type": "database",
+    "criticality": 0.76,
+    "internet_exposed": true
+  },
+  {
+    "id": 83,
+    "name": "Demo-Web-Server-083",
+    "type": "web_server",
+    "criticality": 0.7,
+    "internet_exposed": true
+  },
+  {
+    "id": 84,
+    "name": "Demo-Api-084",
+    "type": "api",
+    "criticality": 0.37,
+    "internet_exposed": true
+  },
+  {
+    "id": 85,
+    "name": "Demo-Workstation-085",
+    "type": "workstation",
+    "criticality": 0.27,
+    "internet_exposed": false
+  },
+  {
+    "id": 86,
+    "name": "Demo-Cloud-Workload-086",
+    "type": "cloud_workload",
+    "criticality": 0.6,
+    "internet_exposed": false
+  },
+  {
+    "id": 87,
+    "name": "Demo-Identity-Server-087",
+    "type": "identity_server",
+    "criticality": 0.77,
+    "internet_exposed": false
+  },
+  {
+    "id": 88,
+    "name": "Demo-Payment-System-088",
+    "type": "payment_system",
+    "criticality": 0.26,
+    "internet_exposed": true
+  },
+  {
+    "id": 89,
+    "name": "Demo-Email-Server-089",
+    "type": "email_server",
+    "criticality": 0.3,
+    "internet_exposed": true
+  },
+  {
+    "id": 90,
+    "name": "Demo-Backup-Server-090",
+    "type": "backup_server",
+    "criticality": 0.81,
+    "internet_exposed": true
+  },
+  {
+    "id": 91,
+    "name": "Demo-Database-091",
+    "type": "database",
+    "criticality": 0.77,
+    "internet_exposed": true
+  },
+  {
+    "id": 92,
+    "name": "Demo-Web-Server-092",
+    "type": "web_server",
+    "criticality": 0.48,
+    "internet_exposed": false
+  },
+  {
+    "id": 93,
+    "name": "Demo-Api-093",
+    "type": "api",
+    "criticality": 0.76,
+    "internet_exposed": false
+  },
+  {
+    "id": 94,
+    "name": "Demo-Workstation-094",
+    "type": "workstation",
+    "criticality": 0.85,
+    "internet_exposed": true
+  },
+  {
+    "id": 95,
+    "name": "Demo-Cloud-Workload-095",
+    "type": "cloud_workload",
+    "criticality": 0.69,
+    "internet_exposed": true
+  },
+  {
+    "id": 96,
+    "name": "Demo-Identity-Server-096",
+    "type": "identity_server",
+    "criticality": 0.33,
+    "internet_exposed": false
+  },
+  {
+    "id": 97,
+    "name": "Demo-Payment-System-097",
+    "type": "payment_system",
+    "criticality": 0.51,
+    "internet_exposed": false
+  },
+  {
+    "id": 98,
+    "name": "Demo-Email-Server-098",
+    "type": "email_server",
+    "criticality": 0.67,
+    "internet_exposed": true
+  },
+  {
+    "id": 99,
+    "name": "Demo-Backup-Server-099",
+    "type": "backup_server",
+    "criticality": 0.64,
+    "internet_exposed": true
+  },
+  {
+    "id": 100,
+    "name": "Demo-Database-100",
+    "type": "database",
+    "criticality": 0.81,
+    "internet_exposed": false
+  }
+]
