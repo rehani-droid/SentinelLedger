@@ -19,6 +19,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      RUN_DB_INIT: ${RUN_DB_INIT:-true}
       SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
       DEMO_CISO_PASSWORD: ${DEMO_CISO_PASSWORD:-CisoDemo!2026}
       DEMO_ANALYST_PASSWORD: ${DEMO_ANALYST_PASSWORD:-AnalystDemo!2026}

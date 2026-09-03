@@ -35,6 +35,9 @@ ledger = AuditLedger()
 
 @app.on_event("startup")
 def initialise_database() -> None:
+    if not settings.run_db_init:
+        return
+
     from alembic import command
     from alembic.config import Config
     from pathlib import Path
