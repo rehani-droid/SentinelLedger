@@ -1,7 +1,7 @@
 # SIH 26105 — Project Status
 
 ## Current phase
-**Phase 9 predictive cyber risk / machine learning complete**
+**Phase 10 security, integration and production hardening complete**
 
 ## Completed
 - Inspected the empty workspace and available development tooling.
@@ -51,6 +51,11 @@
 - Selected an in-memory NumPy logistic model with fixed optimization settings, an ordered 80/20 evaluation split, model/feature versions, explainable standardized feature contributions, and no binary artifact.
 - Added an authenticated `/api/v1/risk/predictive` endpoint and executive dashboard predictive-risk section labelled MODELLED / PREDICTIVE.
 - Extended the local AI assistant for future-risk, increasing-risk, forecast, and predicted-incident-likelihood questions while retaining DATA, CALCULATION, and RECOMMENDATION sections.
+- Completed Phase 10 hardening: protected every authenticated data/calculation boundary, enforced CISO/analyst/auditor role boundaries, added clean token-expiry/logout handling, bounded pagination and scenario identifiers, rejected non-finite or negative financial inputs, and added safe server-side error logging without stack-trace disclosure.
+- Added production configuration safeguards: production JWT secrets must be at least 32 characters, `.env` remains ignored, `.env.example` documents local/PostgreSQL settings without secrets, and the optional local AI fallback remains unchanged.
+- Improved database reliability with SQLAlchemy pool pre-ping, SQLite foreign-key enforcement, request rollback handling, database-aware health checks, and preserved Alembic startup upgrades (no `create_all` replacement).
+- Hardened Docker Compose with environment-provided credentials, PostgreSQL/backend health checks, dependency ordering, migration-on-backend-start, and a frontend production build during image creation.
+- Added audit actor attribution while retaining the verified Hash-Chain Audit Ledger terminology and tamper-detection behavior.
 
 ## Environment findings
 - Node.js 26.8.1 is installed; use `npm.cmd` in this PowerShell environment because the npm PowerShell shim is blocked by execution policy.
@@ -96,7 +101,18 @@
 - Known limitations: intent matching is keyword-based; budget questions mentioning “lakh” use ₹10,00,000 as the deterministic default; scenario questions use 20%-to-100% privileged MFA coverage; outputs remain modelled decision support.
 
 ## Next work
-1. Complete deployment validation.
+1. Future work only: production telemetry, calibration, and operational deployment beyond the SIH demonstration scope.
+
+## Phase 10 validation
+- Backend tests: **41 passed** with `py -m pytest backend\tests`.
+- Frontend tests: **11 passed** with `npm.cmd run test --prefix frontend`.
+- Frontend production build: **passed** with `npm.cmd run build --prefix frontend`.
+- Patch hygiene: **passed** with `git diff --check`.
+
+## Phase 10 known limitations
+- Bearer tokens remain short-lived stateless tokens; logout clears the browser session and provides a protected logout endpoint, while server-side revocation is intentionally outside the existing modular-monolith scope.
+- Docker Desktop was not available in the development environment, so container startup must be exercised on the demonstration laptop.
+- Demo users, telemetry, financial values, scenario assumptions, and predictive metrics remain synthetic/modelled and are not production accuracy claims.
 
 ## Assumptions
 - All demo telemetry and financial results are synthetic/modelled, never presented as observed enterprise data.

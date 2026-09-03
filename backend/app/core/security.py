@@ -10,8 +10,14 @@ def hash_password(password: str, salt: str | None = None) -> str:
     return f"pbkdf2_sha256$310000${salt}${digest}"
 
 def verify_password(password: str, encoded: str) -> bool:
-    _, rounds, salt, stored = encoded.split("$", 3)
-    candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), int(rounds)).hex()
+    try:
+        algorithm, rounds, salt, stored = encoded.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        iterations = int(rounds)
+    except (AttributeError, ValueError):
+        return False
+    candidate = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), iterations).hex()
     return hmac.compare_digest(candidate, stored)
 
 def _b64(value: bytes) -> str:
@@ -28,8 +34,13 @@ def issue_token(subject: str, role: str, expires_in: int = 3600) -> str:
 
 def decode_token(token: str) -> dict:
     header, payload, signature = token.split(".")
+    if json.loads(_unb64(header)).get("alg") != "HS256":
+        raise ValueError("Unsupported token algorithm")
     expected = _b64(hmac.new(settings.jwt_secret.encode(), f"{header}.{payload}".encode(), hashlib.sha256).digest())
     if not hmac.compare_digest(signature, expected): raise ValueError("Invalid signature")
     claims = json.loads(_unb64(payload))
-    if claims.get("exp", 0) < time.time(): raise ValueError("Expired token")
+    if not isinstance(claims.get("sub"), str) or not isinstance(claims.get("role"), str):
+        raise ValueError("Invalid token claims")
+    if not isinstance(claims.get("exp"), (int, float)) or claims["exp"] < time.time():
+        raise ValueError("Expired token")
     return claims

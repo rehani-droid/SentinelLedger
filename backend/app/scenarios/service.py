@@ -1,8 +1,11 @@
 """Scenario deltas are explicit assumptions and never alter stored evidence."""
 from __future__ import annotations
 from ..risk.engine import eal, rosi
+from math import isfinite
 
 def simulate_privileged_mfa(*, before_eal: float, rollout_cost: float, current_privileged_coverage: float, target_privileged_coverage: float) -> dict[str, float | str]:
+    if not isfinite(before_eal) or not isfinite(rollout_cost) or before_eal <= 0 or rollout_cost <= 0:
+        raise ValueError("EAL and rollout cost must be finite and positive")
     if not 0 <= current_privileged_coverage <= target_privileged_coverage <= 1:
         raise ValueError("Coverage values must be ordered probabilities")
     reduction_fraction = (target_privileged_coverage - current_privileged_coverage) * 0.45
@@ -15,6 +18,8 @@ def simulate_scenario(*, baseline_eal: float, mfa_enabled: bool, current_privile
                       investment_reduction: float = 0, investment_cost: float = 0,
                       selected_control: str | None = None, selected_investment: str | None = None,
                       investment_change: float = 0) -> dict:
+    if not isfinite(baseline_eal) or baseline_eal < 0 or not isfinite(investment_reduction) or investment_reduction < 0 or not isfinite(investment_cost) or investment_cost < 0 or not isfinite(investment_change) or investment_change < 0:
+        raise ValueError("Scenario financial values must be finite and non-negative")
     if current_privileged_coverage > target_privileged_coverage:
         raise ValueError("Coverage values must be ordered probabilities")
     mfa_fraction = ((target_privileged_coverage - current_privileged_coverage) * 0.45) if mfa_enabled else 0

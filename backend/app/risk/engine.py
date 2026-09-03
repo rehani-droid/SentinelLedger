@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from statistics import median
 from typing import Iterable
 import random
+from math import isfinite
 
 from .config import CONTROL_REDUCTION_CAP, CRITICALITY_WEIGHTS, LIKELIHOOD_WEIGHTS, LOSS_COMPONENTS, MODEL_VERSION
 
@@ -51,24 +52,34 @@ def likelihood(*, cvss: float, exploitability: float, criticality: float, intern
 def expected_loss(losses: dict[str, float]) -> float:
     """Sum named, non-negative financial loss components in INR."""
     values = [losses.get(component, 0.0) for component in LOSS_COMPONENTS]
-    if any(value < 0 for value in values):
-        raise ValueError("Financial loss components cannot be negative")
-    return float(sum(values))
+    if any(not isfinite(value) or value < 0 for value in values):
+        raise ValueError("Financial loss components must be finite and non-negative")
+    result = float(sum(values))
+    if not isfinite(result):
+        raise ValueError("Financial loss is outside the supported numeric range")
+    return result
 
 
 def eal(annual_incident_frequency: float, expected_loss_per_incident: float) -> float:
-    if not 0 <= annual_incident_frequency <= 1:
+    if not isfinite(annual_incident_frequency) or not 0 <= annual_incident_frequency <= 1:
         raise ValueError("Annual incident frequency must be between 0 and 1")
-    if expected_loss_per_incident < 0:
+    if not isfinite(expected_loss_per_incident) or expected_loss_per_incident < 0:
         raise ValueError("Expected loss cannot be negative")
-    return annual_incident_frequency * expected_loss_per_incident
+    result = annual_incident_frequency * expected_loss_per_incident
+    if not isfinite(result):
+        raise ValueError("Expected annual loss is outside the supported numeric range")
+    return result
 
 
 def cyber_var(*, annual_probability: float, expected_loss_per_incident: float, simulations: int = 5000,
               seed: int = 26105) -> dict[str, float]:
     """Empirical annual loss distribution with bounded uncertainty; reproducible for demos."""
-    if simulations < 100:
-        raise ValueError("At least 100 simulations are required")
+    if simulations < 100 or simulations > 100_000:
+        raise ValueError("Simulations must be between 100 and 100000")
+    if not isfinite(annual_probability) or not 0 <= annual_probability <= 1:
+        raise ValueError("Annual probability must be between 0 and 1")
+    if not isfinite(expected_loss_per_incident) or expected_loss_per_incident < 0:
+        raise ValueError("Expected loss cannot be negative")
     rng = random.Random(seed)
     outcomes = []
     for _ in range(simulations):

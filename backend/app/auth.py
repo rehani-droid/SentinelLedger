@@ -8,8 +8,10 @@ from .models import Role, User
 bearer = HTTPBearer(auto_error=False)
 def current_user(credentials: HTTPAuthorizationCredentials | None = Depends(bearer), session: Session = Depends(get_session)) -> User:
     if not credentials: raise HTTPException(401, "Authentication required")
-    try: claims = decode_token(credentials.credentials)
-    except ValueError: raise HTTPException(401, "Invalid or expired token")
+    try:
+        claims = decode_token(credentials.credentials)
+    except (ValueError, KeyError, TypeError):
+        raise HTTPException(401, "Invalid or expired token") from None
     user = session.scalar(select(User).where(User.username == claims["sub"]))
     if not user or not user.active: raise HTTPException(401, "Inactive user")
     return user

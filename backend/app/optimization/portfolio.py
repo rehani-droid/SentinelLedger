@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from itertools import combinations
+from math import isfinite
 from ..risk.engine import rosi
 
 @dataclass(frozen=True)
@@ -14,8 +15,10 @@ class InvestmentOption:
     excludes: tuple[str, ...] = ()
 
 def optimise(options: list[InvestmentOption], budget: float) -> dict:
-    if budget < 0:
+    if not isfinite(budget) or budget < 0:
         raise ValueError("Budget cannot be negative")
+    if any(not isfinite(item.cost) or item.cost < 0 or not isfinite(item.risk_reduction) or item.risk_reduction < 0 for item in options):
+        raise ValueError("Investment options must contain finite, non-negative values")
     best: tuple[InvestmentOption, ...] = ()
     best_reduction = 0.0
     for size in range(len(options) + 1):

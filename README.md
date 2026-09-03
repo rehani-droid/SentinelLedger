@@ -25,12 +25,14 @@ Read [architecture documentation](docs/architecture.md) for the data flow and co
 - PostgreSQL 16+ for the full persistent deployment
 - Docker Desktop is optional and currently not detected in this environment
 
-## Planned local setup
+## Local setup (Windows PowerShell)
 
 ```powershell
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 py -m pip install -r backend\requirements.txt
+Copy-Item .env.example .env
+# Edit .env and set a unique JWT_SECRET (32+ characters).
 py scripts\seed_demo_data.py
 py -m uvicorn app.main:app --app-dir backend --reload
 
@@ -40,16 +42,36 @@ npm.cmd run dev --prefix frontend
 
 The API Swagger UI will be at `http://localhost:8000/docs`; the Vite UI will be at `http://localhost:5173`.
 
+For PostgreSQL, start only the database with Docker Desktop, set `DATABASE_URL` in `.env`, then apply the versioned migrations before seeding:
+
+```powershell
+docker compose up -d postgres
+py -m alembic -c backend\alembic.ini upgrade head
+py scripts\seed_demo_data.py
+```
+
+## Docker demonstration deployment
+
+Copy `.env.example` to `.env`, set `POSTGRES_PASSWORD` and a random `JWT_SECRET` of at least 32 characters, then run:
+
+```powershell
+docker compose up --build
+```
+
+The compose startup waits for PostgreSQL and the backend health check. Migrations run automatically when the backend starts. Stop services with `docker compose down` (add `-v` only when intentionally deleting demo database data).
+
 ## Verification
 
 ```powershell
-py -m pytest backend\tests tests
+py -m pytest backend\tests
 npm.cmd run test --prefix frontend
+npm.cmd run build --prefix frontend
+git diff --check
 ```
 
 ## Environment
 
-Copy `.env.example` to `.env` only for local development and set `DATABASE_URL` and a secure `JWT_SECRET`. Do not commit `.env`.
+Copy `.env.example` to `.env` only for local development or Docker configuration. Required deployment settings are `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT`, and `CORS_ORIGINS`; Docker additionally uses `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`. `LLM_API_KEY` is optional and the deterministic local assistant remains the default. Do not commit `.env`.
 
 ## Demo story
 
