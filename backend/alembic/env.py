@@ -1,9 +1,11 @@
 from logging.config import fileConfig
 from alembic import context
 from app.db import Base
+from app.core.config import normalize_database_url
 import app.models  # Ensure all mapped tables are registered.
 
 config = context.config
+config.set_main_option("sqlalchemy.url", normalize_database_url(config.get_main_option("sqlalchemy.url")))
 if config.config_file_name:
     fileConfig(config.config_file_name)
 target_metadata = Base.metadata
