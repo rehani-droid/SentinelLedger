@@ -1,7 +1,7 @@
 # SIH 26105 — Project Status
 
 ## Current phase
-**Phase 5 live dashboard and drill-down views complete; awaiting the next assigned phase**
+**Phase 6 scenario simulation and investment optimization UI complete**
 
 ## Completed
 - Inspected the empty workspace and available development tooling.
@@ -37,15 +37,38 @@
 - Replaced the frontend's hard-coded dashboard metrics and drivers with authenticated, persisted synthetic backend data for executive, technical, and business-unit views.
 - Added live asset risk drill-downs covering risk/financial metrics, drivers, vulnerabilities, and investment-linked controls, with loading, error, and empty states.
 - Added read-only dashboard API projections and focused backend coverage verifying the projections use persisted synthetic data.
+- Added an authenticated generic scenario API that reuses persisted enterprise EAL and investment-option data for MFA coverage, remediation delay, control, and investment what-if assumptions.
+- Added the Phase 6 Scenario & optimise workspace with baseline, selected-scenario, and optimized-state cards; scenario configuration/results; investment option cost and risk-reduction visualization; budget handling; ROSI/EAL reduction; and modelled-value assumptions.
+- Added Phase 6 frontend helper tests covering scenario payload configuration, scenario reductions, optimization results, and budget limits.
 
 ## Environment findings
 - Node.js 26.8.1 is installed; use `npm.cmd` in this PowerShell environment because the npm PowerShell shim is blocked by execution policy.
 - Python is available through the Windows `py` launcher; the `python` Windows Store alias is not usable.
 - Git and Docker are not currently on PATH.
 
+## Phase 6 validation
+- Backend tests: 25 passing.
+- Frontend tests: 5 passing.
+- Frontend production build: passing.
+
+## Phase 6 files changed
+- `backend/app/schemas.py`
+- `backend/app/scenarios/service.py`
+- `backend/app/main.py`
+- `backend/tests/test_scenario.py`
+- `frontend/src/main.tsx`
+- `frontend/src/phase6.ts`
+- `frontend/src/phase6.test.ts`
+- `frontend/src/styles.css`
+
+## Limitations / deferred
+- Scenario assumptions are deterministic and explicitly labelled modelled/synthetic; they do not mutate persisted evidence or risk projections.
+- Optimization EAL reduction is derived from the persisted enterprise EAL and optimizer reduction because the existing optimization record stores residual risk rather than a separate EAL field.
+- Compliance, audit, AI/NL, ML, and deployment work remain deferred to later phases.
+
 ## Next work
 1. Extend multi-scenario, optimisation, compliance, ML, and AI services with integration tests.
-2. Add the role-aware audit UI and replace the dashboard's starter metric cards with live pages; complete documentation/deployment validation.
+2. Add the role-aware audit UI and complete documentation/deployment validation.
 
 ## Assumptions
 - All demo telemetry and financial results are synthetic/modelled, never presented as observed enterprise data.

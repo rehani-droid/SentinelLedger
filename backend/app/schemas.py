@@ -27,6 +27,15 @@ class MfaScenarioInput(BaseModel):
     current_privileged_coverage: float = Field(ge=0, le=1)
     target_privileged_coverage: float = Field(ge=0, le=1)
 
+class ScenarioInput(BaseModel):
+    mfa_enabled: bool = False
+    current_privileged_coverage: float = Field(ge=0, le=1)
+    target_privileged_coverage: float = Field(ge=0, le=1)
+    remediation_delay_days: int = Field(ge=0, le=3650)
+    control_code: str | None = Field(default=None, min_length=1, max_length=60)
+    investment_code: str | None = Field(default=None, min_length=1, max_length=60)
+    investment_change: float = Field(default=0, ge=0)
+
 class AIQueryInput(BaseModel):
     question: str = Field(min_length=3, max_length=500)
 

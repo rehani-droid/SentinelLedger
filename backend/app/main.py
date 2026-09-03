@@ -8,17 +8,17 @@ from .audit.ledger import AuditLedger
 from .compliance import FRAMEWORKS
 from .core.config import settings
 from .db import get_session
-from .models import Asset, Incident, InvestmentOptionRecord, OptimizationRunRecord, Role, User
+from .models import Asset, Incident, InvestmentOptionRecord, OptimizationRunRecord, RiskAssessmentRecord, Role, User
 from .optimization.service import run_optimization, serialize_option, serialize_run
 from .risk.engine import cyber_var, eal, expected_loss, likelihood
-from .schemas import AIQueryInput, AuditInput, CsvTelemetryInput, LoginInput, MfaScenarioInput, OptimisationInput, RiskInput, TelemetryBatchInput
+from .schemas import AIQueryInput, AuditInput, CsvTelemetryInput, LoginInput, MfaScenarioInput, OptimisationInput, RiskInput, ScenarioInput, TelemetryBatchInput
 from .core.security import issue_token, verify_password
 from .services.demo_seed import seed_demo
 from .services.risk_persistence import recalculate_risk_assessments
 from sqlalchemy import func, select
 from .audit.ledger import GENESIS_HASH, canonical_json, digest, verify_persisted_chain
 from .models import AuditEventRecord
-from .scenarios.service import simulate_privileged_mfa
+from .scenarios.service import simulate_privileged_mfa, simulate_scenario
 from .ingestion.adapters import SourceType, normalize_csv_partial, normalize_json_partial
 from .ingestion.pipeline import ingest_normalized_events
 from .services.dashboard import asset_detail, business_units, executive, technical
@@ -145,6 +145,24 @@ def get_optimization_run(run_id: int, session: Session = Depends(get_session), _
 @app.post("/api/v1/scenarios/mfa")
 def simulate_mfa(data: MfaScenarioInput) -> dict:
     return simulate_privileged_mfa(**data.model_dump())
+
+@app.post("/api/v1/scenarios")
+def scenario(data: ScenarioInput, session: Session = Depends(get_session),
+             _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
+    enterprise = session.scalar(select(RiskAssessmentRecord).where(RiskAssessmentRecord.target_key == "enterprise"))
+    baseline_eal = enterprise.expected_annual_loss if enterprise else 0
+    option = session.scalar(select(InvestmentOptionRecord).where(InvestmentOptionRecord.code == data.investment_code)) if data.investment_code else None
+    control = data.control_code
+    return simulate_scenario(
+        baseline_eal=baseline_eal, mfa_enabled=data.mfa_enabled,
+        current_privileged_coverage=data.current_privileged_coverage,
+        target_privileged_coverage=data.target_privileged_coverage,
+        remediation_delay_days=data.remediation_delay_days,
+        investment_reduction=option.risk_reduction if option else 0,
+        investment_cost=option.cost if option else 0,
+        selected_control=control, selected_investment=option.code if option else None,
+        investment_change=data.investment_change,
+    )
 
 @app.post("/api/v1/audit", status_code=status.HTTP_201_CREATED)
 def finalise_assessment(data: AuditInput, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst"))) -> dict:

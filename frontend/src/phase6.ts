@@ -1,0 +1,5 @@
+export const scenarioDefaults = { mfa_enabled: true, current_privileged_coverage: 0.2, target_privileged_coverage: 1, remediation_delay_days: 0, control_code: '', investment_code: '', investment_change: 0 };
+export const remainingBudget = (budget: number, totalCost: number) => Math.max(0, budget - totalCost);
+export const ealReduction = (baseline: number, scenario: number) => Math.max(0, baseline - scenario);
+export const buildScenarioPayload = (form: typeof scenarioDefaults) => ({ ...form, current_privileged_coverage: Number(form.current_privileged_coverage), target_privileged_coverage: Number(form.target_privileged_coverage), remediation_delay_days: Number(form.remediation_delay_days), investment_change: Number(form.investment_change) });
+export const optimizationMetrics = (baselineEal: number, budget: number, run: { total_cost: number; estimated_risk_reduction: number }) => ({ remaining_budget: remainingBudget(budget, run.total_cost), eal_reduction: ealReduction(baselineEal, Math.max(0, baselineEal - run.estimated_risk_reduction)) });
