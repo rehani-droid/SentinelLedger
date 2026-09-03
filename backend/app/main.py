@@ -6,6 +6,7 @@ from .ai.fallback import answer
 from .auth import require_roles
 from .audit.ledger import AuditLedger
 from .compliance import FRAMEWORKS
+from .compliance.service import framework_mappings
 from .core.config import settings
 from .db import get_session
 from .models import Asset, Incident, InvestmentOptionRecord, OptimizationRunRecord, RiskAssessmentRecord, Role, User
@@ -92,8 +93,8 @@ def ingest_csv(source_type: SourceType, batch: CsvTelemetryInput, session: Sessi
         raise HTTPException(status_code=422, detail=str(error)) from error
 
 @app.get("/api/v1/frameworks")
-def frameworks() -> dict:
-    return {"frameworks": FRAMEWORKS, "disclaimer": "Mappings are prototype references, not compliance certification."}
+def frameworks(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return framework_mappings(session)
 
 @app.get("/api/v1/assets")
 def list_assets(page: int = 1, page_size: int = 25, session: Session = Depends(get_session)) -> dict:
@@ -178,7 +179,21 @@ def list_audit_events(page: int = 1, page_size: int = 25, session: Session = Dep
     page, page_size = max(page, 1), min(max(page_size, 1), 100)
     total = session.scalar(select(func.count()).select_from(AuditEventRecord)) or 0
     records = session.scalars(select(AuditEventRecord).order_by(AuditEventRecord.id.desc()).offset((page - 1) * page_size).limit(page_size)).all()
-    return {"items": [{"sequence": record.id, "hash": record.event_hash, "previous_hash": record.previous_hash, "timestamp": record.created_at} for record in records], "page": page, "page_size": page_size, "total": total}
+    import json
+    items = []
+    for record in records:
+        payload = json.loads(record.payload)
+        items.append({
+            "sequence": record.id,
+            "hash": record.event_hash,
+            "previous_hash": record.previous_hash,
+            "timestamp": record.created_at,
+            "actor": None,
+            "action": "assessment_finalised",
+            "resource": payload.get("assessment_id"),
+            "payload": payload,
+        })
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
 
 @app.get("/api/v1/audit/verify-chain")
 def verify_audit_chain(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "auditor"))) -> dict:
