@@ -1,7 +1,7 @@
 # SIH 26105 — Project Status
 
 ## Current phase
-**Phase 8 AI decision support and natural-language risk interface complete**
+**Phase 9 predictive cyber risk / machine learning complete**
 
 ## Completed
 - Inspected the empty workspace and available development tooling.
@@ -47,6 +47,10 @@
 - Added deterministic local intent routing for risk overview, top contributors, asset risk, financial exposure, investment recommendation, budget optimization, scenario simulation, vulnerability prioritization, and control/compliance questions.
 - Assistant responses expose separate DATA, CALCULATION, and RECOMMENDATION sections and reuse persisted risk projections, vulnerabilities, controls, investment options, the existing optimizer, and MFA scenario service.
 - Kept the provider offline and server-side: no external LLM or API key is required, no natural-language SQL/code execution is allowed, and the assistant endpoint enforces CISO/analyst/auditor RBAC.
+- Added Phase 9 deterministic predictive-risk feature engineering over persisted asset, vulnerability, control, threat, and incident data.
+- Selected an in-memory NumPy logistic model with fixed optimization settings, an ordered 80/20 evaluation split, model/feature versions, explainable standardized feature contributions, and no binary artifact.
+- Added an authenticated `/api/v1/risk/predictive` endpoint and executive dashboard predictive-risk section labelled MODELLED / PREDICTIVE.
+- Extended the local AI assistant for future-risk, increasing-risk, forecast, and predicted-incident-likelihood questions while retaining DATA, CALCULATION, and RECOMMENDATION sections.
 
 ## Environment findings
 - Node.js 26.8.1 is installed; use `npm.cmd` in this PowerShell environment because the npm PowerShell shim is blocked by execution policy.
@@ -70,10 +74,20 @@
 - `frontend/src/phase7.test.ts`
 - `frontend/src/styles.css`
 
+## Phase 9 ML implementation
+- **Objective/target:** `incident_within_90_days` at asset level, where `0` means no incident and `1` means an incident in the demonstration window. The generator creates 12 monthly observations per persisted asset (1,200 observations total) with deterministic timestamps and probabilistic outcomes.
+- **Features:** asset criticality, data sensitivity, internet exposure, vulnerability count, mean CVSS, mean exploitability, mean persisted control effectiveness, and mean persisted threat activity. No fabricated telemetry fields are introduced.
+- **Model:** deterministic regularized logistic regression implemented with NumPy to keep the offline application functional without an external ML API or large artifact. The model version is `phase9-logistic-v1`; feature version is `asset-risk-features-v1`.
+- **Evaluation:** ordered 80/20 train/evaluation split with precision, recall, F1, and confusion matrix. ROC-AUC is intentionally not reported because the implementation does not claim statistically meaningful probability ranking on this demo split.
+- **Synthetic demonstration result:** 1,200 observations contain 588 positive and 612 negative outcomes. The 240-observation time-held-out evaluation returned precision `0.5210`, recall `0.5905`, F1 `0.5536`, and confusion matrix `[[78, 57], [43, 62]]`. These are generated-data metrics, not production validation.
+- **Unavailable handling:** the service still returns `available: false` with an explicit reason for insufficient rows, a single target class, a non-representative time split, or an unknown asset.
+- **Reproduction:** seed the database, then from `backend/` run `py ../scripts/train_predictive_model.py`. A clean checkout needs only the declared Python dependencies; no model file is committed.
+- **Financial boundary:** predictive output never creates financial loss, EAL, or VaR values; those remain owned by the deterministic risk and financial engine.
+
 ## Limitations / deferred
 - Scenario assumptions are deterministic and explicitly labelled modelled/synthetic; they do not mutate persisted evidence or risk projections.
 - Optimization EAL reduction is derived from the persisted enterprise EAL and optimizer reduction because the existing optimization record stores residual risk rather than a separate EAL field.
-- ML prediction/model training and deployment work remain deferred; Phase 9 is not implemented.
+- Production calibration, time-windowed labels, larger observed datasets, and statistical validation remain future work.
 
 ## Phase 8 supported intents and limitations
 - Supported intents: risk overview, top risk contributors, asset risk, financial exposure, investment recommendation, budget optimization, scenario simulation, vulnerability prioritization, and control/compliance.
@@ -82,8 +96,7 @@
 - Known limitations: intent matching is keyword-based; budget questions mentioning “lakh” use ₹10,00,000 as the deterministic default; scenario questions use 20%-to-100% privileged MFA coverage; outputs remain modelled decision support.
 
 ## Next work
-1. Extend multi-scenario, ML, and AI services with integration tests.
-2. Complete deployment validation.
+1. Complete deployment validation.
 
 ## Assumptions
 - All demo telemetry and financial results are synthetic/modelled, never presented as observed enterprise data.

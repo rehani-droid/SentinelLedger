@@ -2,7 +2,9 @@
 
 def answer(question: str, enterprise_eal: float) -> dict[str, str | float]:
     normalized = question.casefold()
-    if "mfa" in normalized:
+    if any(term in normalized for term in ("predict", "forecast", "increasing", "future")):
+        intent = "predictive_risk"
+    elif "mfa" in normalized:
         intent = "scenario_simulation"
     elif any(term in normalized for term in ("invest", "budget", "spend", "risk reduction")):
         intent = "investment_recommendation"

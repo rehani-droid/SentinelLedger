@@ -1,5 +1,5 @@
 """Versioned API for SentinelLedger's offline demo and production adapters."""
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from .ai.service import handle_query
@@ -23,6 +23,7 @@ from .scenarios.service import simulate_privileged_mfa, simulate_scenario
 from .ingestion.adapters import SourceType, normalize_csv_partial, normalize_json_partial
 from .ingestion.pipeline import ingest_normalized_events
 from .services.dashboard import asset_detail, business_units, executive, technical
+from .ml.service import prediction_payload
 
 app = FastAPI(title="SentinelLedger API", version="0.1.0", description="Modelled cyber risk decision support.")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","), allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
@@ -56,6 +57,10 @@ def seed(session: Session = Depends(get_session)) -> dict:
 @app.get("/api/v1/dashboard/executive")
 def executive_dashboard(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
     return executive(session)
+
+@app.get("/api/v1/risk/predictive")
+def predictive_risk(asset_id: int | None = Query(default=None, ge=1), session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return prediction_payload(session, asset_id)
 
 @app.get("/api/v1/dashboard/technical")
 def technical_dashboard(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:

@@ -3,6 +3,7 @@ from collections import defaultdict
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from ..models import Asset, BusinessUnit, Control, Incident, InvestmentOptionRecord, RiskAssessmentRecord, ThreatScenario, Vulnerability
+from ..ml.service import prediction_payload
 
 def executive(session: Session) -> dict:
     enterprise = session.scalar(select(RiskAssessmentRecord).where(RiskAssessmentRecord.target_key == "enterprise"))
@@ -10,7 +11,7 @@ def executive(session: Session) -> dict:
     trend = defaultdict(float)
     for incident in session.scalars(select(Incident)):
         trend[incident.occurred_at.strftime("%Y-%m")] += incident.financial_loss
-    return {"enterprise": _risk(enterprise), "risk_trend": [{"period": period, "financial_loss": loss} for period, loss in sorted(trend.items())[-6:]], "top_contributors": [{"asset_id": r.asset_id, "name": session.get(Asset, r.asset_id).name, **_risk(r)} for r in asset_risks], "opportunities": [{"code": o.code, "name": o.name, "cost": o.cost, "risk_reduction": o.risk_reduction} for o in session.scalars(select(InvestmentOptionRecord).order_by(InvestmentOptionRecord.risk_reduction.desc()).limit(5))]}
+    return {"enterprise": _risk(enterprise), "predictive_risk": prediction_payload(session), "risk_trend": [{"period": period, "financial_loss": loss} for period, loss in sorted(trend.items())[-6:]], "top_contributors": [{"asset_id": r.asset_id, "name": session.get(Asset, r.asset_id).name, **_risk(r)} for r in asset_risks], "opportunities": [{"code": o.code, "name": o.name, "cost": o.cost, "risk_reduction": o.risk_reduction} for o in session.scalars(select(InvestmentOptionRecord).order_by(InvestmentOptionRecord.risk_reduction.desc()).limit(5))]}
 
 def technical(session: Session) -> dict:
     max_time = session.scalar(select(func.max(Incident.occurred_at)))

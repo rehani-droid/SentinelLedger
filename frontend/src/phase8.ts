@@ -4,6 +4,8 @@ export const assistantExamples = [
   'Where should we spend our next ₹10 lakh?',
   'What happens if we enable MFA for privileged users?',
   'What are the highest priority vulnerabilities?',
+  'What is our predicted incident likelihood?',
+  'Is our cyber risk increasing?',
 ];
 
 export type AssistantResponse = {

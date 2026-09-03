@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..models import Asset, Control, Incident, InvestmentOptionRecord, RiskAssessmentRecord, Vulnerability
+from ..ml.service import prediction_payload
 from ..optimization.portfolio import InvestmentOption, optimise
 from ..scenarios.service import simulate_scenario
 
@@ -19,6 +20,8 @@ def classify(question: str) -> str:
     text = " ".join(question.casefold().split())
     if any(word in text for word in ("mfa", "what happens if", "scenario", "enable")):
         return "scenario_simulation"
+    if any(word in text for word in ("predict", "forecast", "future", "increasing", "incident likelihood", "driving future")):
+        return "predictive_risk"
     if any(word in text for word in ("budget", "spend", "lakh", "optimi")):
         return "budget_optimization"
     if any(word in text for word in ("invest", "security investment", "risk reduction")):
@@ -54,6 +57,15 @@ def handle_query(session: Session, question: str) -> dict:
     if intent == "unsupported":
         return _envelope(intent, {}, "No approved deterministic operation matched the question.",
                           "Try a question about risk, assets, financial exposure, vulnerabilities, controls, investments, budgets, or MFA scenarios.")
+    if intent == "predictive_risk":
+        prediction = prediction_payload(session)
+        if prediction["available"]:
+            recommendation = "Treat this as modelled decision support, not a guaranteed outcome; review the listed drivers and current telemetry."
+            calculation = "Trained the deterministic Phase 9 logistic model on an ordered 80/20 asset split and returned its 90-day likelihood estimate."
+        else:
+            recommendation = "Collect time-separated incident observations with both outcome classes before using predictive likelihood for decisions."
+            calculation = f"Prediction was not produced because the training data is {prediction['unavailable_reason']}."
+        return _envelope(intent, {"predictive_risk": prediction}, calculation, recommendation)
     if intent in ("risk_overview", "financial_exposure"):
         incidents = session.scalar(select(func.count()).select_from(Incident)) or 0
         return _envelope(intent, {"enterprise": _risk(enterprise), "incident_count": incidents},
