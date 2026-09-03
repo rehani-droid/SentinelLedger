@@ -1,4 +1,5 @@
 """Deterministic, idempotent SIH demo dataset seeding."""
+import os
 from random import Random
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -40,7 +41,15 @@ def seed_demo(session: Session) -> dict[str, int]:
     roles = [Role(name=name) for name in ["ciso", "analyst", "auditor"]]
     session.add_all(units + roles); session.flush()
     role_by_name = {role.name: role for role in roles}
-    session.add_all([User(username="ciso", password_hash=hash_password("CisoDemo!2026"), role_id=role_by_name["ciso"].id), User(username="analyst", password_hash=hash_password("AnalystDemo!2026"), role_id=role_by_name["analyst"].id), User(username="auditor", password_hash=hash_password("AuditorDemo!2026"), role_id=role_by_name["auditor"].id)])
+    demo_users = [
+        ("ciso", os.getenv("DEMO_CISO_PASSWORD", "CisoDemo!2026")),
+        ("analyst", os.getenv("DEMO_ANALYST_PASSWORD", "AnalystDemo!2026")),
+        ("auditor", os.getenv("DEMO_AUDITOR_PASSWORD", "AuditorDemo!2026")),
+    ]
+    session.add_all([
+        User(username=username, password_hash=hash_password(password), role_id=role_by_name[username].id)
+        for username, password in demo_users
+    ])
     asset_types = ["database", "web_server", "api", "workstation", "laptop", "cloud_workload", "identity_server", "payment_system", "email_server", "backup_server"]
     assets = [Asset(name=f"Demo {asset_types[i % len(asset_types)].replace('_', ' ').title()} {i+1:03}", asset_type=asset_types[i % len(asset_types)], business_unit_id=units[i % len(units)].id, criticality=round(rng.uniform(.2, .98),2), data_sensitivity=round(rng.uniform(.2, .98),2), internet_exposed=i % 3 == 0) for i in range(100)]
     session.add_all(assets); session.flush()

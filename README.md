@@ -18,47 +18,67 @@ SentinelLedger translates normalised cybersecurity telemetry into transparent, *
 
 Read [architecture documentation](docs/architecture.md) for the data flow and component boundaries.
 
-## Prerequisites (Windows PowerShell)
+## QUICK START
 
-- Python 3.11+ available through `py`
-- Node.js 20+ (installed: Node 26)
-- PostgreSQL 16+ for the full persistent deployment
-- Docker Desktop is optional and currently not detected in this environment
+### Prerequisites
 
-## Local setup (Windows PowerShell)
+- Docker Desktop
+- Git
+
+### Startup (Windows PowerShell)
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env: set POSTGRES_PASSWORD and a unique JWT_SECRET (at least 32 characters).
+docker compose config
+docker compose up --build
+```
+
+Compose waits for a healthy PostgreSQL container, runs Alembic migrations when the backend starts, seeds deterministic demo data, and then starts the frontend. Open `http://localhost:5173` (API and Swagger: `http://localhost:8000` and `http://localhost:8000/docs`). Stop with `docker compose down`; use `docker compose down -v` only when intentionally deleting the demo database.
+
+### Demo login
+
+Use the seeded CISO account:
+
+- **Username:** `ciso`
+- **Password:** the value of `DEMO_CISO_PASSWORD` in `.env` (the local template default is `CisoDemo!2026`)
+- **Role:** CISO
+
+The analyst and auditor accounts are also seeded from `DEMO_ANALYST_PASSWORD` and `DEMO_AUDITOR_PASSWORD`. These are synthetic local-demo credentials, not production secrets. Never commit `.env`.
+
+## Recommended SIH demonstration sequence
+
+1. **Login as CISO.**
+2. **Executive:** show enterprise risk, financial exposure, EAL, 95% VaR, risk trend, top contributors, and the 90-day modelled predictive view.
+3. **High-risk asset:** open a contributor to show criticality, vulnerabilities, controls, risk drivers, and financial exposure.
+4. **Scenario & optimise:** increase privileged MFA coverage, compare the baseline with the modelled risk/EAL reduction, then run Investment Optimization with a ₹10 lakh budget to show available investments, selected investments, residual budget, and recommendation.
+5. **Compliance:** show NIST CSF, ISO/IEC 27001, CIS Controls, RBI Cyber Security Framework, and SEBI Cybersecurity and Cyber Resilience Framework mappings.
+6. **Audit Ledger:** show event order, timestamps, hashes, previous hashes, and verification. Call this a **HASH-CHAIN AUDIT LEDGER**, not a blockchain.
+7. **AI/Risk Assistant:** ask “Is our cyber risk increasing?”, “What are our top risk contributors?”, “What is our financial exposure?”, “How should we invest a ₹10 lakh security budget?”, and “What happens if privileged MFA coverage increases?”. Responses are read-only, deterministic/modelled decision support.
+8. **Predictive ML:** show 90-day incident likelihood, model and feature versions, predictive drivers, and evaluation metrics. Do not describe these synthetic metrics as production accuracy.
+
+All monetary values, likelihoods, risk reductions, framework evidence, incidents, and predictive outputs are synthetic/modelled demonstration data. They are not observed enterprise statistics, guarantees, regulatory certifications, or production-level predictive claims.
+
+## Architecture overview
+
+SentinelLedger is a modular monolith: a React + TypeScript + Vite frontend calls a FastAPI backend; PostgreSQL stores users, telemetry, projections, optimization runs, framework mappings, and audit events. Alembic manages schema upgrades, the deterministic Python risk engine calculates EAL/VaR and explainability, the optimizer evaluates constrained portfolios, and the audit service persists a SHA-256 hash chain. The offline assistant only routes approved read-only intents to structured backend calculations.
+
+See [architecture documentation](docs/architecture.md) for component boundaries and data flow.
+
+## Local development without Compose
+
+For development with SQLite, Python 3.11+, Node.js 20+, and the `py` launcher:
 
 ```powershell
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 py -m pip install -r backend\requirements.txt
 Copy-Item .env.example .env
-# Edit .env and set a unique JWT_SECRET (32+ characters).
 py scripts\seed_demo_data.py
 py -m uvicorn app.main:app --app-dir backend --reload
-
 npm.cmd install --prefix frontend
 npm.cmd run dev --prefix frontend
 ```
-
-The API Swagger UI will be at `http://localhost:8000/docs`; the Vite UI will be at `http://localhost:5173`.
-
-For PostgreSQL, start only the database with Docker Desktop, set `DATABASE_URL` in `.env`, then apply the versioned migrations before seeding:
-
-```powershell
-docker compose up -d postgres
-py -m alembic -c backend\alembic.ini upgrade head
-py scripts\seed_demo_data.py
-```
-
-## Docker demonstration deployment
-
-Copy `.env.example` to `.env`, set `POSTGRES_PASSWORD` and a random `JWT_SECRET` of at least 32 characters, then run:
-
-```powershell
-docker compose up --build
-```
-
-The compose startup waits for PostgreSQL and the backend health check. Migrations run automatically when the backend starts. Stop services with `docker compose down` (add `-v` only when intentionally deleting demo database data).
 
 ## Verification
 
@@ -66,13 +86,8 @@ The compose startup waits for PostgreSQL and the backend health check. Migration
 py -m pytest backend\tests
 npm.cmd run test --prefix frontend
 npm.cmd run build --prefix frontend
+docker compose config
 git diff --check
 ```
 
-## Environment
-
-Copy `.env.example` to `.env` only for local development or Docker configuration. Required deployment settings are `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT`, and `CORS_ORIGINS`; Docker additionally uses `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD`. `LLM_API_KEY` is optional and the deterministic local assistant remains the default. Do not commit `.env`.
-
-## Demo story
-
-Sign in as the seeded CISO, inspect financial cyber risk and its drivers, simulate a privileged MFA rollout, optimise a ₹1 crore budget, review framework coverage, then verify the assessment hash in the audit ledger.
+`LLM_API_KEY` is optional; the deterministic local assistant is the default. `.env` is ignored by Git and `.env.example` contains placeholders only.

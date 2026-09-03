@@ -20,6 +20,9 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      DEMO_CISO_PASSWORD: ${DEMO_CISO_PASSWORD:-CisoDemo!2026}
+      DEMO_ANALYST_PASSWORD: ${DEMO_ANALYST_PASSWORD:-AnalystDemo!2026}
+      DEMO_AUDITOR_PASSWORD: ${DEMO_AUDITOR_PASSWORD:-AuditorDemo!2026}
     ports: ["8000:8000"]
     depends_on:
       postgres:

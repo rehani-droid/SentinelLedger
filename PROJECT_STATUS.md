@@ -1,7 +1,7 @@
 # SIH 26105 — Project Status
 
 ## Current phase
-**Phase 10 security, integration and production hardening complete**
+**Phase 12 SIH 2026 demo readiness complete**
 
 ## Completed
 - Inspected the empty workspace and available development tooling.
@@ -129,3 +129,52 @@
 - All demo telemetry and financial results are synthetic/modelled, never presented as observed enterprise data.
 - The offline demo uses deterministic query handling; an optional external LLM may only explain verified structured outputs.
 - Git is available for repository work; Docker Compose was available and validated for this phase.
+
+## Phase 12 final status
+
+Phases 1–12 are complete. No new product phase is planned for the SIH 2026 demonstration scope.
+
+### Final architecture and feature list
+
+- React/Vite frontend with authenticated CISO, analyst, and auditor workspaces.
+- FastAPI modular-monolith backend with PostgreSQL persistence and Alembic migrations.
+- Deterministic synthetic seed: 100 assets, 150 applications, 600 vulnerabilities, 35 controls, 520 incidents, 24 threat scenarios, framework mappings, investment options, users, and persisted risk projections.
+- Executive risk dashboard with enterprise risk, financial exposure, EAL, empirical 95% VaR, trend, contributors, business-unit risk, asset drill-down, and modelled predictive ML.
+- What-if scenario simulation, constrained investment optimization, compliance mapping, and persisted SHA-256 hash-chain audit ledger.
+- Authenticated read-only AI/Risk Assistant with structured DATA, CALCULATION, and RECOMMENDATION output; no arbitrary SQL, code, filesystem, or mutation capability.
+
+### Final validation
+
+- Backend: **41 tests passed** with `py -m pytest backend\tests`.
+- Frontend: **11 tests passed** with `npm.cmd run test --prefix frontend`.
+- Frontend production build: **passed** with `npm.cmd run build --prefix frontend`.
+- Docker Compose configuration: **passed** when `.env` supplies local credentials.
+- Clean Docker startup: **passed** in Phase 11 with healthy PostgreSQL, backend migrations/seed, backend health check, and frontend health check.
+- Patch hygiene: **passed** with `git diff --check`.
+
+### Exact demo startup
+
+```powershell
+Copy-Item .env.example .env
+# Edit .env and set POSTGRES_PASSWORD plus a unique JWT_SECRET (32+ characters).
+docker compose up --build
+```
+
+Open `http://localhost:5173`. The API is at `http://localhost:8000`; stop with `docker compose down`.
+The seeded CISO username is `ciso`; use the `DEMO_CISO_PASSWORD` value in `.env` (the template default is the synthetic local-demo value `CisoDemo!2026`).
+
+### Recommended SIH sequence
+
+1. Login as CISO and open Executive.
+2. Show enterprise risk, exposure, EAL, VaR, trend, top contributors, and predictive risk.
+3. Open a high-risk asset and show criticality, vulnerabilities, controls, drivers, and exposure.
+4. Run the privileged-MFA scenario and compare baseline, assumption, changed risk, and reduction.
+5. Run Investment Optimization with a ₹10 lakh budget and show selected investments and EAL reduction.
+6. Show NIST CSF, ISO/IEC 27001, CIS Controls, RBI Cyber Security Framework, and SEBI Cybersecurity and Cyber Resilience Framework.
+7. Show the **HASH-CHAIN AUDIT LEDGER** event sequence, timestamps, hashes, previous hashes, and verification; it is not a blockchain.
+8. Ask the documented AI/Risk Assistant questions and distinguish deterministic/modelled results from unsupported claims.
+9. Show the 90-day predictive likelihood, model/feature versions, drivers, and synthetic evaluation metrics without claiming production accuracy.
+
+### Known limitations and disclaimer
+
+Scenario assumptions, financial values, telemetry, framework evidence, incidents, optimization reductions, and predictive metrics are synthetic/modelled demonstration data. They are not real-world statistics, production calibration, guarantees, regulatory certifications, or production-level predictive accuracy. Tokens are short-lived and stateless; server-side revocation remains outside this demo scope.
