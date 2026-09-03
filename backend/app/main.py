@@ -2,7 +2,7 @@
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from .ai.fallback import answer
+from .ai.service import handle_query
 from .auth import require_roles
 from .audit.ledger import AuditLedger
 from .compliance import FRAMEWORKS
@@ -110,9 +110,9 @@ def enterprise_eal(session: Session = Depends(get_session)) -> dict:
     return {"eal": losses / 5, "basis": "five-year deterministic synthetic incident history", "model_version": "1.0.0"}
 
 @app.post("/api/v1/ai/query")
-def ai_query(data: AIQueryInput, session: Session = Depends(get_session)) -> dict:
-    losses = session.scalar(select(func.coalesce(func.sum(Incident.financial_loss), 0.0))) or 0.0
-    return {**answer(data.question, enterprise_eal=losses / 5), "source": "persisted synthetic incident history"}
+def ai_query(data: AIQueryInput, session: Session = Depends(get_session),
+             _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return handle_query(session, data.question)
 
 @app.post("/api/v1/risk/assess")
 def assess_risk(data: RiskInput) -> dict:

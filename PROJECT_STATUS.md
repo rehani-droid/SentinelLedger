@@ -1,7 +1,7 @@
 # SIH 26105 — Project Status
 
 ## Current phase
-**Phase 7 compliance mapping and audit ledger UI complete**
+**Phase 8 AI decision support and natural-language risk interface complete**
 
 ## Completed
 - Inspected the empty workspace and available development tooling.
@@ -43,6 +43,10 @@
 - Added a role-aware compliance and audit assurance workspace using persisted framework mappings and the existing hash-chain APIs.
 - Added framework mapping projections with SENTINELEDGER control links, supported coverage, status, risk relevance, and explicit evidence availability.
 - Added audit event presentation with timestamps, available resource/action data, hash-chain links, finalisation context, and clear verified/failed/empty/API-error states.
+- Added the Phase 8 authenticated AI/Risk Assistant workspace with example questions, loading/error/empty states, and session-expiry handling.
+- Added deterministic local intent routing for risk overview, top contributors, asset risk, financial exposure, investment recommendation, budget optimization, scenario simulation, vulnerability prioritization, and control/compliance questions.
+- Assistant responses expose separate DATA, CALCULATION, and RECOMMENDATION sections and reuse persisted risk projections, vulnerabilities, controls, investment options, the existing optimizer, and MFA scenario service.
+- Kept the provider offline and server-side: no external LLM or API key is required, no natural-language SQL/code execution is allowed, and the assistant endpoint enforces CISO/analyst/auditor RBAC.
 
 ## Environment findings
 - Node.js 26.8.1 is installed; use `npm.cmd` in this PowerShell environment because the npm PowerShell shim is blocked by execution policy.
@@ -53,6 +57,9 @@
 - Backend tests: 26 passing.
 - Frontend tests: 7 passing.
 - Frontend production build: passing.
+
+## Phase 8 validation
+- Backend and frontend Phase 8 tests added; full backend suite and frontend suite/build run after implementation.
 
 ## Phase 7 files changed
 - `backend/app/compliance/service.py`
@@ -66,7 +73,13 @@
 ## Limitations / deferred
 - Scenario assumptions are deterministic and explicitly labelled modelled/synthetic; they do not mutate persisted evidence or risk projections.
 - Optimization EAL reduction is derived from the persisted enterprise EAL and optimizer reduction because the existing optimization record stores residual risk rather than a separate EAL field.
-- AI/NL, ML, and deployment work remain deferred to later phases.
+- ML prediction/model training and deployment work remain deferred; Phase 9 is not implemented.
+
+## Phase 8 supported intents and limitations
+- Supported intents: risk overview, top risk contributors, asset risk, financial exposure, investment recommendation, budget optimization, scenario simulation, vulnerability prioritization, and control/compliance.
+- Provider behavior: deterministic local fallback only; responses are based on current persisted synthetic/modelled data and do not claim predictive accuracy.
+- Security controls: authenticated role checks, read-only query routing, bounded Pydantic input, no arbitrary SQL/code, no database mutation from assistant queries.
+- Known limitations: intent matching is keyword-based; budget questions mentioning “lakh” use ₹10,00,000 as the deterministic default; scenario questions use 20%-to-100% privileged MFA coverage; outputs remain modelled decision support.
 
 ## Next work
 1. Extend multi-scenario, ML, and AI services with integration tests.
