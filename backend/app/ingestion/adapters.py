@@ -74,6 +74,18 @@ def normalize_json(source_type: SourceType, records: list[dict[str, Any]]) -> li
     return [ADAPTERS[source_type].normalize(record) for record in records]
 
 
+def normalize_json_partial(source_type: SourceType, records: list[dict[str, Any]]) -> tuple[list[NormalizedEvent], list[dict[str, Any]]]:
+    """Keep valid events in a batch when individual source records are malformed."""
+    events: list[NormalizedEvent] = []
+    rejected: list[dict[str, Any]] = []
+    for index, record in enumerate(records):
+        try:
+            events.append(ADAPTERS[source_type].normalize(record))
+        except Exception as error:
+            rejected.append({"index": index, "reason": str(error)})
+    return events, rejected
+
+
 def normalize_csv(source_type: SourceType, content: str) -> list[NormalizedEvent]:
     reader = csv.DictReader(io.StringIO(content))
     if not reader.fieldnames:
@@ -90,3 +102,23 @@ def normalize_csv(source_type: SourceType, content: str) -> list[NormalizedEvent
             raise ValueError("CSV payload must be valid JSON") from error
         records.append(row)
     return normalize_json(source_type, records)
+
+
+def normalize_csv_partial(source_type: SourceType, content: str) -> tuple[list[NormalizedEvent], list[dict[str, Any]]]:
+    reader = csv.DictReader(io.StringIO(content))
+    if not reader.fieldnames:
+        raise ValueError("CSV header is required")
+    required = {"source_id", "source_event_id", "observed_at", "payload"}
+    missing = required - set(reader.fieldnames)
+    if missing:
+        raise ValueError(f"CSV missing required columns: {', '.join(sorted(missing))}")
+    records: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    for index, row in enumerate(reader):
+        try:
+            row["payload"] = json.loads(row["payload"])
+            records.append(row)
+        except (TypeError, json.JSONDecodeError):
+            rejected.append({"index": index, "reason": "CSV payload must be valid JSON"})
+    events, invalid_envelopes = normalize_json_partial(source_type, records)
+    return events, rejected + invalid_envelopes

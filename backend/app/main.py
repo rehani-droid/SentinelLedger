@@ -1,40 +1,40 @@
 """Versioned API for SentinelLedger's offline demo and production adapters."""
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .ai.fallback import answer
 from .auth import require_roles
 from .audit.ledger import AuditLedger
 from .compliance import FRAMEWORKS
 from .core.config import settings
-from .db import Base, engine, get_session
-from .ingestion.schemas import VulnerabilityEvent
-from .models import Asset, Incident, IngestionEvent, Role, User, Vulnerability
-from .optimization.portfolio import InvestmentOption, optimise
+from .db import get_session
+from .models import Asset, Incident, InvestmentOptionRecord, OptimizationRunRecord, Role, User
+from .optimization.service import run_optimization, serialize_option, serialize_run
 from .risk.engine import cyber_var, eal, expected_loss, likelihood
 from .schemas import AIQueryInput, AuditInput, CsvTelemetryInput, LoginInput, MfaScenarioInput, OptimisationInput, RiskInput, TelemetryBatchInput
 from .core.security import issue_token, verify_password
 from .services.demo_seed import seed_demo
+from .services.risk_persistence import recalculate_risk_assessments
 from sqlalchemy import func, select
 from .audit.ledger import GENESIS_HASH, canonical_json, digest, verify_persisted_chain
 from .models import AuditEventRecord
 from .scenarios.service import simulate_privileged_mfa
-from .ingestion.adapters import SourceType, normalize_csv, normalize_json
+from .ingestion.adapters import SourceType, normalize_csv_partial, normalize_json_partial
+from .ingestion.pipeline import ingest_normalized_events
+from .services.dashboard import asset_detail, business_units, executive, technical
 
 app = FastAPI(title="SentinelLedger API", version="0.1.0", description="Modelled cyber risk decision support.")
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","), allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
 ledger = AuditLedger()
-DEMO_OPTIONS = [
-    InvestmentOption("patch", "Patch critical vulnerabilities", 800_000, 2_800_000),
-    InvestmentOption("mfa", "Privileged MFA rollout", 1_200_000, 3_500_000),
-    InvestmentOption("edr", "EDR coverage expansion", 2_000_000, 3_000_000),
-    InvestmentOption("segmentation", "Network segmentation", 2_500_000, 4_200_000, depends_on=("edr",)),
-]
 
 @app.on_event("startup")
 def initialise_database() -> None:
-    Base.metadata.create_all(bind=engine)
+    from alembic import command
+    from alembic.config import Config
+    from pathlib import Path
+    config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    config.set_main_option("sqlalchemy.url", settings.database_url)
+    command.upgrade(config, "head")
 
 @app.get("/health")
 def health() -> dict[str, str]:
@@ -50,45 +50,44 @@ def login(data: LoginInput, session: Session = Depends(get_session)) -> dict:
 
 @app.post("/api/v1/admin/seed")
 def seed(session: Session = Depends(get_session)) -> dict:
-    return seed_demo(session)
+    result = seed_demo(session); recalculate_risk_assessments(session); return result
 
-@app.post("/api/v1/ingestion/vulnerabilities", status_code=status.HTTP_201_CREATED)
-def ingest_vulnerability(event: VulnerabilityEvent, session: Session = Depends(get_session)) -> dict:
-    record = Vulnerability(asset_id=event.asset_id, cve_id=event.cve_id, cvss=event.cvss,
-                           exploitability=event.exploitability, source_id=event.source_id,
-                           source_event_id=event.source_event_id)
-    session.add(record)
-    try:
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(status_code=409, detail="Duplicate source event")
-    return {"id": record.id, "status": "normalised", "source_id": event.source_id}
+@app.get("/api/v1/dashboard/executive")
+def executive_dashboard(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return executive(session)
 
-def _record_telemetry(events, session: Session) -> dict:
-    records = [IngestionEvent(source_id=event.source_id, source_type=event.source_type.value,
-                              source_event_id=event.source_event_id, observed_at=event.observed_at,
-                              payload_hash=event.payload_fingerprint()) for event in events]
-    session.add_all(records)
-    try:
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(status_code=409, detail="Duplicate source event")
-    return {"accepted": len(records), "status": "normalised", "recalculation_requested": True,
-            "sources": sorted({event.source_type.value for event in events})}
+@app.get("/api/v1/dashboard/technical")
+def technical_dashboard(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return technical(session)
+
+@app.get("/api/v1/assets/{asset_id}")
+def get_asset(asset_id: int, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    result = asset_detail(session, asset_id)
+    if result is None: raise HTTPException(404, "Asset not found")
+    return result
+
+@app.get("/api/v1/business-units")
+def list_business_units(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return {"items": business_units(session)}
+
+@app.post("/api/v1/risk/recalculate")
+def recalculate_risk(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
+    return {"status": "recalculated", **recalculate_risk_assessments(session)}
 
 @app.post("/api/v1/ingestion/{source_type}/json", status_code=status.HTTP_201_CREATED)
 def ingest_json(source_type: SourceType, batch: TelemetryBatchInput, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
-    try:
-        return _record_telemetry(normalize_json(source_type, batch.events), session)
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
+    events, rejected = normalize_json_partial(source_type, batch.events)
+    result = ingest_normalized_events(session, events)
+    result["rejected"] = rejected + result["rejected"]
+    return result
 
 @app.post("/api/v1/ingestion/{source_type}/csv", status_code=status.HTTP_201_CREATED)
 def ingest_csv(source_type: SourceType, batch: CsvTelemetryInput, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
     try:
-        return _record_telemetry(normalize_csv(source_type, batch.content), session)
+        events, rejected = normalize_csv_partial(source_type, batch.content)
+        result = ingest_normalized_events(session, events)
+        result["rejected"] = rejected + result["rejected"]
+        return result
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
 
@@ -122,9 +121,26 @@ def assess_risk(data: RiskInput) -> dict:
             "var": cyber_var(annual_probability=probability, expected_loss_per_incident=loss), "model_version": "1.0.0"}
 
 @app.post("/api/v1/optimization")
-def investment_optimisation(data: OptimisationInput, _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
-    result = optimise(DEMO_OPTIONS, data.budget)
-    return {**result, "selected": [item.__dict__ for item in result["selected"]], "estimate": "modelled"}
+def investment_optimisation(data: OptimisationInput, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst"))) -> dict:
+    return {**serialize_run(run_optimization(session, data.budget)), "estimate": "modelled"}
+
+@app.get("/api/v1/investment-options")
+def list_investment_options(session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    return {"items": [serialize_option(record) for record in session.scalars(select(InvestmentOptionRecord).order_by(InvestmentOptionRecord.code)).all()]}
+
+@app.get("/api/v1/optimization")
+def list_optimization_runs(page: int = 1, page_size: int = 25, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    page, page_size = max(page, 1), min(max(page_size, 1), 100)
+    total = session.scalar(select(func.count()).select_from(OptimizationRunRecord)) or 0
+    records = session.scalars(select(OptimizationRunRecord).order_by(OptimizationRunRecord.id.desc()).offset((page - 1) * page_size).limit(page_size)).all()
+    return {"items": [serialize_run(record) for record in records], "page": page, "page_size": page_size, "total": total}
+
+@app.get("/api/v1/optimization/{run_id}")
+def get_optimization_run(run_id: int, session: Session = Depends(get_session), _: User = Depends(require_roles("ciso", "analyst", "auditor"))) -> dict:
+    record = session.get(OptimizationRunRecord, run_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Optimisation run not found")
+    return serialize_run(record)
 
 @app.post("/api/v1/scenarios/mfa")
 def simulate_mfa(data: MfaScenarioInput) -> dict:

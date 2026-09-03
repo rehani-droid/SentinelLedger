@@ -6,8 +6,34 @@ from ..core.security import hash_password
 from ..models import Application, Asset, BusinessUnit, Control, FrameworkMapping, Incident, InvestmentOptionRecord, Role, ThreatScenario, User, Vulnerability
 
 SEED = 26105
+
+def _ensure_investment_options(session: Session) -> None:
+    assets = session.scalars(select(Asset).order_by(Asset.id)).all()
+    controls = session.scalars(select(Control).order_by(Control.id)).all()
+    if not assets or not controls:
+        return
+    options = [
+        ("patch", "Patch critical vulnerabilities", "Remediate the highest-risk externally exposed vulnerability backlog.", 800000, 2800000, [], []),
+        ("mfa", "Privileged MFA rollout", "Require phishing-resistant MFA for privileged access paths.", 1200000, 3500000, [], []),
+        ("edr", "EDR coverage expansion", "Extend managed endpoint detection and response to unmanaged servers.", 2000000, 3000000, [], []),
+        ("segmentation", "Network segmentation", "Segment critical payment and identity workloads after endpoint coverage is in place.", 2500000, 4200000, ["edr"], ["backup_isolation"]),
+        ("backup_isolation", "Immutable backup isolation", "Protect recovery copies from ransomware encryption paths.", 1500000, 2400000, [], ["segmentation"]),
+    ]
+    for index, (code, name, description, cost, reduction, dependencies, exclusions) in enumerate(options):
+        record = session.scalar(select(InvestmentOptionRecord).where(InvestmentOptionRecord.code == code))
+        values = dict(name=name, description=description, cost=cost, risk_reduction=reduction,
+                      affected_asset_ids=[asset.id for asset in assets[index * 10:(index + 1) * 10]],
+                      affected_control_ids=[controls[index % len(controls)].id], dependencies=dependencies, exclusions=exclusions)
+        if record is None:
+            session.add(InvestmentOptionRecord(code=code, **values))
+        else:
+            for field, value in values.items():
+                setattr(record, field, value)
+
 def seed_demo(session: Session) -> dict[str, int]:
     if session.scalar(select(Asset.id).limit(1)):
+        _ensure_investment_options(session)
+        session.commit()
         return {"assets": session.query(Asset).count(), "status": "already_seeded"}
     rng = Random(SEED)
     units = [BusinessUnit(name=name) for name in ["Retail Banking", "Payments", "Wealth", "Operations", "Technology", "Risk", "Corporate"]]
@@ -24,7 +50,7 @@ def seed_demo(session: Session) -> dict[str, int]:
     session.add_all(controls); session.flush()
     session.add_all([Incident(asset_id=assets[i%100].id, severity=["low","medium","high","critical"][i%4], financial_loss=float(rng.randint(50_000,3_000_000))) for i in range(520)])
     session.add_all([ThreatScenario(name=f"Threat Scenario {i+1:02}", threat_type=["ransomware","credential_compromise","data_breach","cloud_misconfiguration"][i%4], activity=round(rng.uniform(.2,.95),2)) for i in range(24)])
-    session.add_all([InvestmentOptionRecord(code=code, name=name, cost=cost, risk_reduction=reduction) for code,name,cost,reduction in [("patch","Patch critical vulnerabilities",800000,2800000),("mfa","Privileged MFA",1200000,3500000),("edr","EDR expansion",2000000,3000000),("segment","Network segmentation",2500000,4200000)]])
+    _ensure_investment_options(session)
     session.add_all([FrameworkMapping(framework=framework, control_reference=reference, control_id=controls[i % len(controls)].id) for i,(framework,reference) in enumerate([(f,r) for f, refs in {"NIST CSF":["PR.AA","DE.CM"],"ISO 27001":["A.5.15","A.8.8"],"CIS":["1","4"],"RBI":["Vulnerability Management"],"SEBI":["IAM"]}.items() for r in refs])])
     session.commit()
     return {"assets":100,"applications":150,"vulnerabilities":600,"controls":35,"incidents":520,"threat_scenarios":24,"status":"seeded"}
