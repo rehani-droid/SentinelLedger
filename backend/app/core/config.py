@@ -8,6 +8,7 @@ class Settings:
     jwt_secret: str = os.getenv("JWT_SECRET", "development-only-change-before-production")
     cors_origins: str = os.getenv("CORS_ORIGINS", "http://localhost:5173")
     llm_api_key: str = os.getenv("LLM_API_KEY", "")
+    seed_demo_data: bool = os.getenv("SEED_DEMO_DATA", "false").lower() in {"1", "true", "yes", "on"}
 
     def __post_init__(self) -> None:
         if self.environment.lower() in {"production", "prod"} and (

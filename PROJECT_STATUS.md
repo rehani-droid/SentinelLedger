@@ -111,10 +111,21 @@
 
 ## Phase 10 known limitations
 - Bearer tokens remain short-lived stateless tokens; logout clears the browser session and provides a protected logout endpoint, while server-side revocation is intentionally outside the existing modular-monolith scope.
-- Docker Desktop was not available in the development environment, so container startup must be exercised on the demonstration laptop.
+- Docker Desktop was not available during Phase 10; Phase 11 clean-start validation is now complete in the current environment.
 - Demo users, telemetry, financial values, scenario assumptions, and predictive metrics remain synthetic/modelled and are not production accuracy claims.
+
+## Phase 11 Docker validation
+- Docker Compose clean startup: **passed** with a fresh PostgreSQL volume using `docker compose down -v --remove-orphans` followed by `docker compose up --build -d`.
+- PostgreSQL: **healthy** on `postgres:16-alpine`; startup health check passed.
+- Backend: **healthy** on port 8000; Alembic upgraded the clean database on startup and opt-in Compose seeding populated deterministic synthetic data.
+- Deterministic seed counts verified from PostgreSQL: 100 assets, 150 applications, 600 vulnerabilities, 35 controls, 520 incidents, and 24 threat scenarios.
+- Frontend: **healthy** production Vite preview container on port 5173; the image runs the production build and has an IPv4-safe health check.
+- Networking/configuration: browser-facing `VITE_API_URL` defaults to `http://localhost:8000`, backend CORS defaults to `http://localhost:5173`, and all credentials remain environment-provided.
+- Authentication and workflows exercised with the seeded CISO account: executive dashboard, technical dashboard, asset risk detail, scenario simulation, investment optimization, compliance frameworks, hash-chain audit listing/verification, AI/Risk Assistant, predictive ML, and risk assessment.
+- Commands used: `docker compose config`, `docker compose down -v --remove-orphans`, `docker compose up --build -d`, `docker compose ps`, `docker compose logs`, `docker compose exec -T postgres psql ...`, backend `py -m pytest backend\\tests`, frontend `npm.cmd run test --prefix frontend`, and frontend `npm.cmd run build --prefix frontend`.
+- Remaining limitations: Docker Compose requires local `POSTGRES_PASSWORD` and a production-length `JWT_SECRET` in the environment (no secrets are committed); demo data and all model outputs remain deterministic synthetic/modelled values.
 
 ## Assumptions
 - All demo telemetry and financial results are synthetic/modelled, never presented as observed enterprise data.
 - The offline demo uses deterministic query handling; an optional external LLM may only explain verified structured outputs.
-- Docker Desktop/Git installation did not complete or become available on PATH; this is an environment blocker, not a reason to stop local application development.
+- Git is available for repository work; Docker Compose was available and validated for this phase.

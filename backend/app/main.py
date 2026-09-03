@@ -41,6 +41,10 @@ def initialise_database() -> None:
     config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", settings.database_url)
     command.upgrade(config, "head")
+    if settings.seed_demo_data:
+        with next(get_session()) as session:
+            seed_demo(session)
+            recalculate_risk_assessments(session)
 
 @app.get("/health")
 def health(session: Session = Depends(get_session)) -> dict[str, str]:
