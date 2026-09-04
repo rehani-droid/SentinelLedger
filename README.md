@@ -34,14 +34,14 @@ docker compose config
 docker compose up --build
 ```
 
-Compose waits for a healthy PostgreSQL container, runs Alembic migrations when the backend starts, seeds deterministic demo data, and then starts the frontend. Open `http://localhost:5173` (API and Swagger: `http://localhost:8000` and `http://localhost:8000/docs`). Stop with `docker compose down`; use `docker compose down -v` only when intentionally deleting the demo database.
+Compose waits for a healthy PostgreSQL container, runs Alembic migrations when the backend starts, and then starts the frontend. Demo seeding is opt-in: set `SEED_DEMO_DATA=true` and provide the three `DEMO_*_PASSWORD` values in `.env` for a local demonstration. Open `http://localhost:5173` (API and Swagger: `http://localhost:8000` and `http://localhost:8000/docs`). Stop with `docker compose down`; use `docker compose down -v` only when intentionally deleting the demo database.
 
 ### Demo login
 
 Use the seeded CISO account:
 
 - **Username:** `ciso`
-- **Password:** the value of `DEMO_CISO_PASSWORD` in `.env` (the local template default is `CisoDemo!2026`)
+- **Password:** the value of `DEMO_CISO_PASSWORD` in `.env`
 - **Role:** CISO
 
 The analyst and auditor accounts are also seeded from `DEMO_ANALYST_PASSWORD` and `DEMO_AUDITOR_PASSWORD`. These are synthetic local-demo credentials, not production secrets. Never commit `.env`.
@@ -91,3 +91,22 @@ git diff --check
 ```
 
 `LLM_API_KEY` is optional; the deterministic local assistant is the default. `.env` is ignored by Git and `.env.example` contains placeholders only.
+
+The optional `scripts\initialize_database.py` utility applies Alembic migrations without deleting existing data. It seeds the deterministic demo dataset only when `SEED_DEMO_DATA=true` is explicitly set.
+
+## Vercel + Neon deployment
+
+Deploy this repository as two Vercel projects:
+
+- **Frontend project root:** `frontend`
+  - Framework preset: Vite
+  - Build command: `npm run build`
+  - Output directory: `dist`
+  - Public variable: `VITE_API_URL=<stable backend project origin>`
+- **Backend project root:** `backend`
+  - Python entrypoint: `api/index.py`
+  - Required backend variables: `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT`, and `CORS_ORIGINS`
+  - Keep `RUN_DB_INIT=false` unless controlled startup migrations are explicitly required.
+  - Keep `SEED_DEMO_DATA=false` for production; demo credentials are only needed for an intentional demonstration seed.
+
+Set `CORS_ORIGINS` to the stable frontend project origin and `VITE_API_URL` to the stable backend project origin. Both values are origins only: do not append `/api` or `/api/v1`, and do not commit deployment URLs or secrets. Apply Alembic migrations with the existing initialization utility against Neon before using the backend with production data. Live Vercel and Neon connectivity must be validated in the deployment environment; repository checks do not prove a live deployment.

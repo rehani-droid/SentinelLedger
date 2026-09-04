@@ -30,8 +30,23 @@ from .ml.service import prediction_payload
 
 app = FastAPI(title="SentinelLedger API", version="0.1.0", description="Modelled cyber risk decision support.")
 logger = logging.getLogger("sentinelledger")
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","), allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Authorization"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins.split(","),
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 ledger = AuditLedger()
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    if request.url.path.startswith("/api/") or request.url.path == "/health":
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
 
 @app.on_event("startup")
 def initialise_database() -> None:

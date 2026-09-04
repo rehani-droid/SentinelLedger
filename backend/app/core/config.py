@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+from urllib.parse import urlsplit
 
 def normalize_database_url(database_url: str) -> str:
     if database_url.startswith("postgresql://"):
@@ -20,9 +21,27 @@ class Settings:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "database_url", normalize_database_url(self.database_url))
+        origins = tuple(origin.strip() for origin in self.cors_origins.split(",") if origin.strip())
+        if not origins:
+            raise ValueError("CORS_ORIGINS must contain at least one origin")
+        for origin in origins:
+            parsed = urlsplit(origin)
+            try:
+                port = parsed.port
+            except ValueError as error:
+                raise ValueError("CORS_ORIGINS contains an invalid origin") from error
+            if (
+                parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or
+                parsed.password or (port is not None and not 1 <= port <= 65535) or
+                parsed.path or parsed.query or parsed.fragment or "*" in origin
+            ):
+                raise ValueError("CORS_ORIGINS contains an invalid origin")
+        object.__setattr__(self, "cors_origins", ",".join(origins))
         if self.environment.lower() in {"production", "prod"} and (
             self.jwt_secret == "development-only-change-before-production" or len(self.jwt_secret) < 32
         ):
             raise ValueError("JWT_SECRET must be at least 32 characters in production")
+        if self.environment.lower() in {"production", "prod"} and self.seed_demo_data:
+            raise ValueError("SEED_DEMO_DATA must be disabled in production")
 
 settings = Settings()

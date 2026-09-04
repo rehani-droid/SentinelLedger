@@ -1,9 +1,9 @@
 """Manually initialize a configured SentinelLedger database once.
 
 Run this script from the repository root with DATABASE_URL set to the target
-database, for example a Neon PostgreSQL connection string. It runs migrations,
-seeds the deterministic demo records, and recalculates persisted risk
-projections. Vercel startup does not invoke this script.
+database, for example a PostgreSQL connection string. It always runs migrations.
+Set SEED_DEMO_DATA=true to seed deterministic demo records and recalculate
+persisted risk projections. Vercel startup does not invoke this script.
 """
 from __future__ import annotations
 
@@ -34,12 +34,13 @@ def main() -> None:
     alembic_config.set_main_option("sqlalchemy.url", normalize_database_url(database_url))
     command.upgrade(alembic_config, "head")
 
-    session = SessionLocal()
-    try:
-        seed_demo(session)
-        recalculate_risk_assessments(session)
-    finally:
-        session.close()
+    if os.getenv("SEED_DEMO_DATA", "false").lower() in {"1", "true", "yes", "on"}:
+        session = SessionLocal()
+        try:
+            seed_demo(session)
+            recalculate_risk_assessments(session)
+        finally:
+            session.close()
 
     print("Database initialization completed.")
 

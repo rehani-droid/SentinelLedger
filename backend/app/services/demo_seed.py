@@ -42,10 +42,12 @@ def seed_demo(session: Session) -> dict[str, int]:
     session.add_all(units + roles); session.flush()
     role_by_name = {role.name: role for role in roles}
     demo_users = [
-        ("ciso", os.getenv("DEMO_CISO_PASSWORD", "CisoDemo!2026")),
-        ("analyst", os.getenv("DEMO_ANALYST_PASSWORD", "AnalystDemo!2026")),
-        ("auditor", os.getenv("DEMO_AUDITOR_PASSWORD", "AuditorDemo!2026")),
+        ("ciso", os.getenv("DEMO_CISO_PASSWORD") or ("CisoDemo!2026" if os.getenv("ENVIRONMENT", "development").lower() not in {"production", "prod"} else "")),
+        ("analyst", os.getenv("DEMO_ANALYST_PASSWORD") or ("AnalystDemo!2026" if os.getenv("ENVIRONMENT", "development").lower() not in {"production", "prod"} else "")),
+        ("auditor", os.getenv("DEMO_AUDITOR_PASSWORD") or ("AuditorDemo!2026" if os.getenv("ENVIRONMENT", "development").lower() not in {"production", "prod"} else "")),
     ]
+    if any(not password for _, password in demo_users):
+        raise RuntimeError("Demo credentials must be explicitly configured before production seeding")
     session.add_all([
         User(username=username, password_hash=hash_password(password), role_id=role_by_name[username].id)
         for username, password in demo_users
